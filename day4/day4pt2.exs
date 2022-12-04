@@ -12,9 +12,6 @@ defmodule Day4 do
       one = String.split(Enum.at(pair, 0), "-", trim: true)
       two = String.split(Enum.at(pair, 1), "-", trim: true)
 
-      # [1-2, 8-9]
-      # [1-3, 2-9]
-
       if (String.to_integer(Enum.at(one, 0)) < String.to_integer(Enum.at(two, 0)) &&
             String.to_integer(Enum.at(one, 1)) < String.to_integer(Enum.at(two, 0))) ||
            (String.to_integer(Enum.at(one, 0)) > String.to_integer(Enum.at(two, 1)) &&
