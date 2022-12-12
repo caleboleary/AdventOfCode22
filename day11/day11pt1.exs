@@ -1,7 +1,7 @@
 defmodule Day11 do
   def get_input do
-    # File.read!("./day11/day11testinput.txt")
-    File.read!("./day11/day11input.txt")
+    File.read!("./day11/day11testinput.txt")
+    # File.read!("./day11/day11input.txt")
   end
 
   def parse_input fileContents do
@@ -39,13 +39,15 @@ defmodule Day11 do
 
 
   def main do
+    rounds = 20;
+
     input = get_input()
     monkeys = parse_input(input)
 
-    roundStates = Enum.reduce(1..20, [monkeys], fn _i, acc ->
-        lastRoundState = Enum.at(acc, -1)
-        # IO.inspect(lastRoundState)
-        newRoundStates = Enum.reduce(lastRoundState, [lastRoundState], fn monkey, roundAcc ->
+    roundStates = Enum.reduce(1..rounds, %{lastRoundState: monkeys, inspectionCounter: List.duplicate(0, length(monkeys))}, fn i, acc ->
+        IO.inspect(i)
+        lastRoundState = acc.lastRoundState
+        roundInterimStates = Enum.reduce(lastRoundState, [lastRoundState], fn monkey, roundAcc ->
 
             inspections = length(Enum.find(Enum.at(roundAcc, -1), fn x -> x.id === monkey.id end).items)
             # IO.inspect("#{monkey.id} has #{inspections} items")
@@ -56,9 +58,9 @@ defmodule Day11 do
                     monkey.op.operation === "+" -> String.to_integer(String.replace(monkey.op.left, "old", item)) + String.to_integer(String.replace(monkey.op.right, "old", item))
                 end
             end) 
-            |> Enum.map(fn increasedItems ->
-                trunc(increasedItems / 3)
-            end)
+            # |> Enum.map(fn increasedItems ->
+            #     trunc(increasedItems / 3)
+            # end)
             |> Enum.map(fn dividedItems ->
                 if rem(dividedItems, monkey.divisbleBy) === 0 do
                     [monkey.op.action.t, dividedItems]
@@ -85,44 +87,27 @@ defmodule Day11 do
                 # |> IO.inspect()  # this one seems right??
 
         end)
-        acc ++ newRoundStates
+        result = %{
+            lastRoundState: Enum.at(roundInterimStates, -1),
+            inspectionCounter: Enum.at(Enum.map(roundInterimStates, fn roundState ->
+                roundState
+                |> Enum.with_index()
+                |> Enum.map(fn {monkey, i} ->
+                    Enum.at(acc.inspectionCounter, i) + monkey.inspectionLog
+                end)
+            end), -1)
+        } 
+        # IO.inspect(result)
         
     end)
     # |> IO.inspect()
 
-    passCounts = roundStates
-    # |> Enum.slice(0..-5)
-    |> Enum.with_index()
-    #filter to every 5th round
-    |> Enum.filter(fn {_, i} -> rem(i, length(monkeys) + 1) === 0 end)
-    |> Enum.map(fn {roundResult, i} ->
-    #     IO.inspect(i)
-        # Enum.reduce(roundResult, [], fn monkey, acc ->
-        #     acc ++ monkey.destinationLog
-        # end) |> IO.inspect()
-        roundResult
-        |> Enum.reduce([], fn monkey, acc ->
-           acc ++ List.duplicate(monkey.id, monkey.inspectionLog)
-        end)
-    end)
-    |> Enum.concat()
-    |> IO.inspect()
+    IO.inspect("final round states")
+    IO.inspect(roundStates)
+    IO.inspect("final inspection counts")
+    IO.inspect(Enum.join(roundStates.inspectionCounter, ", "))
 
-    IO.inspect(Enum.at(roundStates, -1))
-    
-    Enum.map(0..length(monkeys) - 1, fn i ->
-        Enum.filter(passCounts, fn x -> x === "#{i}" end) |> length()
-    end)
-    |> Enum.with_index()
-    |> Enum.map(fn {count, i} -> 
-         "#{i}: #{count}"
-        # "#{i}: #{count + (Enum.at(monkeys, i).items |> length())}"
-    end)
-    |> IO.inspect()
-    
-    counts = Enum.map(0..length(monkeys) - 1, fn i ->
-        Enum.filter(passCounts, fn x -> x === "#{i}" end) |> length()
-    end)
+    counts = roundStates.inspectionCounter
     |> Enum.sort()
 
     Enum.at(counts, -1) * Enum.at(counts, -2)
