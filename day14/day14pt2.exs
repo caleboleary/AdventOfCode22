@@ -9,9 +9,29 @@ defmodule Day14 do
     IO.inspect("map: ")
     IO.inspect("-------------------------------")
     Enum.map(map, fn row -> 
-      IO.inspect(Enum.join(row, ""))
+      if is_list(row) do
+        IO.inspect(Enum.join(row, ""))
+      else
+        IO.inspect(Enum.join(Tuple.to_list(row), ""))
+      end
     end)
     IO.inspect("-------------------------------")
+  end
+
+  def fast_at(tup, index) do
+    if is_list(tup) do
+      Enum.at(tup, index)
+    else
+      tup |> elem(index)
+    end
+  end
+
+  def muh_len(thing) do
+    if is_list(thing) do
+      length(thing)
+    else
+      tuple_size(thing)
+    end
   end
 
   def insert_rock_vein(map, veinPointList, smallestX, smallestY) do
@@ -30,31 +50,31 @@ defmodule Day14 do
     # to
     # [[503, 4], [502, 4], [502, 4], [502, 5], [502, 6], [502, 7], [502, 8], [502, 9], [501, 9], [500, 9], [499, 9], [498, 9], [497, 9], [496, 9], [495, 9], [494, 9]]
 
-    expandedPoints = Enum.flat_map(0..length(veinPointList) - 2, fn index -> 
-      point1 = Enum.at(veinPointList, index)
-      point2 = Enum.at(veinPointList, index + 1)
-      if Enum.at(point1, 0) == Enum.at(point2, 0) do
+    expandedPoints = Enum.flat_map(0..muh_len(veinPointList) - 2, fn index -> 
+      point1 = fast_at(veinPointList, index)
+      point2 = fast_at(veinPointList, index + 1)
+      if fast_at(point1, 0) == fast_at(point2, 0) do
         # x is the same, so we need to expand on y
-        Enum.map(Enum.at(point1, 1)..Enum.at(point2, 1), fn y -> 
-          [Enum.at(point1, 0), y]
+        Enum.map(fast_at(point1, 1)..fast_at(point2, 1), fn y -> 
+          [fast_at(point1, 0), y]
         end)
       else
         # y is the same, so we need to expand on x
-        Enum.map(Enum.at(point1, 0)..Enum.at(point2, 0), fn x -> 
-          [x, Enum.at(point1, 1)]
+        Enum.map(fast_at(point1, 0)..fast_at(point2, 0), fn x -> 
+          [x, fast_at(point1, 1)]
         end)
       end
     end)
     |> Enum.uniq()
 
     # return map with expandedPoints converted into "#"
-    Enum.map(0..length(map) - 1, fn y -> 
-      Enum.map(0..length(Enum.at(map, y)) - 1, fn x -> 
+    Enum.map(0..muh_len(map) - 1, fn y -> 
+      Enum.map(0..muh_len(fast_at(map, y)) - 1, fn x -> 
         #add smallestX and smallestY to x and y to get the actual coordinates
         if Enum.member?(expandedPoints, [x + smallestX, y + smallestY]) do
           "#"
         else
-          Enum.at(Enum.at(map, y), x)
+          fast_at(fast_at(map, y), x)
         end
       end)
     end)
@@ -70,23 +90,23 @@ defmodule Day14 do
       String.split(line, ",", trim: true)
     end)
     |> Enum.map(fn pair -> 
-      [String.to_integer(Enum.at(pair, 0)), String.to_integer(Enum.at(pair, 1))]
+      [String.to_integer(fast_at(pair, 0)), String.to_integer(fast_at(pair, 1))]
     end)
 
     sortedByX = Enum.sort_by(allVertices, fn pair -> 
-      Enum.at(pair, 0)
+      fast_at(pair, 0)
     end)
 
     sortedByY = Enum.sort_by(allVertices, fn pair -> 
-      Enum.at(pair, 1)
+      fast_at(pair, 1)
     end)
 
-    # largestX = Enum.at(sortedByX, -1) |> Enum.at(0)
+    # largestX = fast_at(sortedByX, -1) |> fast_at(0)
     largestX = 1000
-    # smallestX = Enum.at(sortedByX, 0) |> Enum.at(0)
+    # smallestX = fast_at(sortedByX, 0) |> fast_at(0)
     smallestX = 0
-    largestY = Enum.at(sortedByY, -1) |> Enum.at(1)
-    # smallestY = Enum.at(sortedByY, 0) |> Enum.at(1)
+    largestY = fast_at(sortedByY, -1) |> fast_at(1)
+    # smallestY = fast_at(sortedByY, 0) |> fast_at(1)
     smallestY = 0
 
 
@@ -105,22 +125,22 @@ defmodule Day14 do
   def move_sand_from_to(map, [fromx, fromy], [tox, toy]) do
 
     newMap = Enum.slice(map, 0, fromy) ++
-      [Enum.map(0..length(Enum.at(map, fromy)) - 1, fn x -> 
+      [Enum.map(0..muh_len(fast_at(map, fromy)) - 1, fn x -> 
         if x == fromx do
           "."
         else
-          Enum.at(Enum.at(map, fromy), x)
+          fast_at(fast_at(map, fromy), x)
         end
       end)] ++
       Enum.slice(map, fromy + 1, toy - fromy - 1) ++
-      [Enum.map(0..length(Enum.at(map, toy)) - 1, fn x -> 
+      [Enum.map(0..muh_len(fast_at(map, toy)) - 1, fn x -> 
         if x == tox do
           "o"
         else
-          Enum.at(Enum.at(map, toy), x)
+          fast_at(fast_at(map, toy), x)
         end
       end)] ++
-      Enum.slice(map, toy + 1, length(map) - toy - 1)
+      Enum.slice(map, toy + 1, muh_len(map) - toy - 1)
 
   end
 
@@ -158,14 +178,16 @@ defmodule Day14 do
 
     sandSource = [500 - smallestX, 0]
 
-    mapWithSandSource = Enum.map(0..length(mapWithRockVeins) - 1, fn y -> 
-      Enum.map(0..length(Enum.at(mapWithRockVeins, y)) - 1, fn x -> 
+    mapWithSandSource = Enum.map(0..muh_len(mapWithRockVeins) - 1, fn y -> 
+      Enum.map(0..muh_len(fast_at(mapWithRockVeins, y)) - 1, fn x -> 
         if [x, y] == sandSource do
           "+"
         else
-          Enum.at(Enum.at(mapWithRockVeins, y), x)
+          fast_at(fast_at(mapWithRockVeins, y), x)
         end
       end)
+    end) |> Enum.map(fn x ->
+      List.to_tuple(x) 
     end)
 
     visualize_map(mapWithSandSource)
@@ -180,12 +202,12 @@ defmodule Day14 do
 
       currentMap  = sandCountAcc.map
 
-      mapWithSandBelowSource = Enum.map(0..length(currentMap) - 1, fn y -> 
-        Enum.map(0..length(Enum.at(currentMap, y)) - 1, fn x -> 
+      mapWithSandBelowSource = Enum.map(0..muh_len(currentMap) - 1, fn y -> 
+        Enum.map(0..muh_len(fast_at(currentMap, y)) - 1, fn x -> 
           if [x, y] == sandSource do
             "o"
           else
-            Enum.at(Enum.at(currentMap, y), x)
+            fast_at(fast_at(currentMap, y), x)
           end
         end)
       end)
@@ -195,7 +217,7 @@ defmodule Day14 do
       mapWithSandSettled = Enum.reduce_while(0..10000, %{
         map: mapWithSandBelowSource,
         sandSettled: false,
-        lastMovedSandPosition: [Enum.at(sandSource, 0), Enum.at(sandSource, 1)],
+        lastMovedSandPosition: [fast_at(sandSource, 0), fast_at(sandSource, 1)],
         endSimulation: false
       }, fn _index, fallingSandAcc ->
 
@@ -203,15 +225,15 @@ defmodule Day14 do
         [lastX, lastY] = fallingSandAcc.lastMovedSandPosition
 
         cond do
-          lastY == 0 and Enum.at(Enum.at(fallingMap, lastY + 1), lastX) == "o" and Enum.at(Enum.at(fallingMap, lastY + 1), lastX - 1) == "o" and Enum.at(Enum.at(fallingMap, lastY + 1), lastX + 1) == "o" ->
+          lastY == 0 and fast_at(fast_at(fallingMap, lastY + 1), lastX) == "o" and fast_at(fast_at(fallingMap, lastY + 1), lastX - 1) == "o" and fast_at(fast_at(fallingMap, lastY + 1), lastX + 1) == "o" ->
             # sand has reached the bottom of the map
             IO.inspect("end sim hit")
             {:halt, %{map: fallingMap, sandSettled: true, lastMovedSandPosition: [lastX, lastY], endSimulation: true}}
-          Enum.at(Enum.at(fallingMap, lastY + 1), lastX) == "." ->
+          fast_at(fast_at(fallingMap, lastY + 1), lastX) == "." ->
             # sand below is air, so move sand down
             # move sand as far straight down as possible when it passes through .s
-            targetY = Enum.reduce_while(lastY + 1..length(fallingMap) - 1, lastY + 1, fn y, targetYAcc ->
-              if Enum.at(Enum.at(fallingMap, y), lastX) == "." do
+            targetY = Enum.reduce_while(lastY + 1..muh_len(fallingMap) - 1, lastY + 1, fn y, targetYAcc ->
+              if fast_at(fast_at(fallingMap, y), lastX) == "." do
                 {:cont, y}
               else
                 {:halt, targetYAcc}
@@ -220,11 +242,11 @@ defmodule Day14 do
 
             mapWithSandMovedDown = move_sand_from_to(fallingMap, [lastX, lastY], [lastX, targetY])
             {:cont, %{map: mapWithSandMovedDown, sandSettled: false, lastMovedSandPosition: [lastX, targetY], endSimulation: false}}
-          Enum.at(Enum.at(fallingMap, lastY + 1), lastX - 1) == "." ->
+          fast_at(fast_at(fallingMap, lastY + 1), lastX - 1) == "." ->
             # sand below and to left is air, so move sand down and left
             mapWithSandMovedDown = move_sand_from_to(fallingMap, [lastX, lastY], [lastX - 1, lastY + 1])
             {:cont, %{map: mapWithSandMovedDown, sandSettled: false, lastMovedSandPosition: [lastX - 1, lastY + 1], endSimulation: false}}
-          Enum.at(Enum.at(fallingMap, lastY + 1), lastX + 1) == "." ->
+          fast_at(fast_at(fallingMap, lastY + 1), lastX + 1) == "." ->
             # sand below and to right is air, so move sand down and right
             mapWithSandMovedDown = move_sand_from_to(fallingMap, [lastX, lastY], [lastX + 1, lastY + 1])
             {:cont, %{map: mapWithSandMovedDown, sandSettled: false, lastMovedSandPosition: [lastX + 1, lastY + 1], endSimulation: false}}
