@@ -80,13 +80,7 @@ defmodule Day15 do
       end)
     end)
 
-    # sort by x
-    sortedCells = Enum.sort_by(nonOccupiedBlockedCells, fn cell ->
-      cell |> elem(0)
-    end)
-    
-
-    length(sortedCells)
+    length(nonOccupiedBlockedCells)
 
   end
 end
