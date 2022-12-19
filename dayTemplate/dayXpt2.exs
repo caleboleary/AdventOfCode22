@@ -1,7 +1,7 @@
 defmodule DayX do
   def get_input do
-    # File.read!("./dayX/dayXtestinput.txt")
-    File.read!("./dayX/dayXinput.txt")
+    File.read!("./dayX/dayXtestinput.txt")
+    # File.read!("./dayX/dayXinput.txt")
         |> String.split("\n", trim: true)
   end
 
