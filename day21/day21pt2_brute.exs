@@ -77,87 +77,40 @@ defmodule Day21 do
 
       #is root value not nil?
       if Map.get(updatedState, "root").result != nil do
-        {:halt, updatedState}
+        {:halt, Map.get(updatedState, "root").result}
       else
         {:cont, updatedState}
       end
+
+
       
     end)
   end
 
-  def recurse(input, key) do
-    item = Map.get(input, key)
-
-    if (item.component1 == nil) do
-      if (key == "humn") do
-        "(x)"
-      else
-        "#{item.result}"
-      end
-    else
-      "(#{recurse(input, item.component1)} #{item.operation} #{recurse(input, item.component2)})"
-    end
-  end
-
-  def extract_math_chain(simState) do
-    #thinking as I write. looks like changing "humn" only changes one of the two parents of root
-    #i'd like to extract the math that made that side of its tree
-    #for test input I think it'd be something like 
-    # rootLeft = pppw(cczh(sllz(4) + lgvd(ljgn(2) * ptdq(humn(x) - dvpt(3)))) / lfqf(4))
-    # rootLeft = ((4) + ((2) * ((x) - (3)))) / (4)
-    # ((4 + (2 * ((x) - 3))) / 4)
-
-    {recurse(simState, Map.get(simState, "root").component1), recurse(simState, Map.get(simState, "root").component2)}
-
-
-  end
-
   def main do
+
     input = get_input() |> parse_input()
     # IO.inspect(input)
 
-    sim = get_sim_result(input)
-
-    IO.inspect(sim)
-
-    {chain1, chain2} = extract_math_chain(sim)
-
-    variableChain = if (String.contains?(chain1, "x")) do
-      chain1
-    else
-      chain2
-    end
-
-    # write variableChain to file
-    # File.write!("./day21/day21variableChain.txt", variableChain)
-
-    otherChain = if (String.contains?(chain1, "x")) do
-      chain2
-    else
-      chain1
-    end
-
-    otherChainResult = Code.eval_string(otherChain)
-    IO.inspect(otherChainResult)
-    throw "a"
-
-    Enum.reduce_while(0..1000000, 0, fn index, acc ->
-      if (rem(index, 1000) == 0) do
+    Enum.reduce_while(0..100000, input, fn index, _acc ->
+      if rem(index, 1000) == 0 do
         IO.inspect(index)
       end
+    
+      ptInput = %{
+        input | 
+        "humn" => %{input["humn"] | result: index}
+      }
 
-      result = Code.eval_string(String.replace(variableChain, "x", to_string(index)))
+      {a, b} = get_sim_result(ptInput)
 
-      if (result == otherChainResult) do
+      if a == b do
         {:halt, index}
       else
-        {:cont, acc}
+        {:cont, index}
       end
 
-
     end)
-
-
     
 
   end
