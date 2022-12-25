@@ -1,17 +1,9 @@
-defmodule DayX do
-  def get_input do
-    File.read!("./dayX/dayXtestinput.txt")
-    # File.read!("./dayX/dayXinput.txt")
-        |> String.split("\n", trim: true)
-  end
-
-
+defmodule Day25 do
+  
   def main do
-    input = get_input()
-    
-    
-
+    IO.inspect("Too top secret to commit")
   end
 end
 
-IO.inspect(DayX.main())
+IO.inspect(Day25.main())
+
